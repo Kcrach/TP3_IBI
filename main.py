@@ -25,24 +25,52 @@ def check(student_id, passwords):
     return results
 
 
+# Algo Gen functions
+
 def step_run(agents):
-    pass
+    """Run unlock64.exe for each agent and attribute the fitness."""
+    to_run = []
+    for a in agents:
+        to_run.append(a.value)
+
+    result = check(STUDENT_ID, to_run)
+
+    for i in range(len(result)):
+        agents[i].fitness = result[i]
 
 
 def step_mutate(agents):
-    pass
+    """Mutate each agent."""
+    for a in agents:
+        a.mutate()
 
 
 def step_generate(agents):
-    pass
+    """Return a new agent set according to fitness."""
+    return agents
+
 
 def step(agents):
     step_run(agents)
+    agents = step_generate(agents)
     step_mutate(agents)
+
+
+def init(agents):
+    for a in agents:
+        a.set_random()
 
 
 if __name__ == "__main__":
 
-    agent_list = [ag.Agent(POOL)] * NB_AGENT
+    agent_list = []
+    for _ in range(NB_AGENT):
+        agent_list.append(ag.Agent(POOL))
 
-    print(check(STUDENT_ID, ["PASSWORD"]))
+    init(agent_list)
+
+    step(agent_list)
+
+    # print all agents with their fitness
+    for current in agent_list:
+        print(current)
