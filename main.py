@@ -13,6 +13,8 @@ NB_AGENT = 100
 MAX_GEN = -1  # -1: until solution is found
 POOL = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
+iteration = 0
+
 
 def check(student_id, passwords):
     proc = subprocess.Popen(["./unlock64.exe", str(student_id)]
@@ -44,7 +46,10 @@ def step_run(agents):
 def step_mutate(agents):
     """Mutate each agent."""
     for a in agents:
-        a.mutate()
+        old = a.value
+        for _ in range(rd.randint(1, 3)):
+            a.mutate()
+        """print(old, "to", a.value)"""
     return agents
 
 
@@ -81,7 +86,8 @@ def step_generate_rank(agents):
         delta = 0
         while score > 0:
             delta += 1
-            current_agent = agents[index]
+            # current_agent = agents[index]
+            current_agent = agents[min(index + 10, NB_AGENT - 1)]
             index += 1
             score -= delta
         new_agents.append(ag.Agent())
@@ -96,10 +102,46 @@ def random_mutation(agents):
     return agents
 
 
+def get_children(agents):
+    new_agents = []
+    for i in range(len(agents) - 1):
+        if i % 2 == 0:
+            dad = agents[i]
+            mum = agents[i + 1]
+            dad_percent = dad.fitness / (dad.fitness + mum.fitness)
+            # print(str(dad), str(mum))
+            for j in range(2):
+                new_agent = ag.Agent(POOL)
+                for k in range(max(len(dad.value), len(mum.value))):
+                    if rd.uniform(0., 1.) < dad_percent:
+                        if len(dad.value) > k:
+                            new_agent.value += dad.value[k]
+                    else:
+                        if len(mum.value) > k:
+                            new_agent.value += mum.value[k]
+                new_agents.append(ag.Agent())
+                new_agents[-1] = new_agent
+                # print("gives", new_agent)
+
+    return new_agents
+
+
 def step(agents):
     step_run(agents)
+    best = 0.
+    best_value = ""
+    print("---")
+    for current in agent_list:
+        step_run(agent_list)
+        if best < current.fitness:
+            best = current.fitness
+            best_value = current.value
+    print(best, best_value)
+    """for c in agents:
+        print(str(c))"""
     # agents = step_generate(agents)
     agents = step_generate_rank(agents)
+    # agents = get_children(agents)
     agents = step_mutate(agents)
     agents = random_mutation(agents)
     return agents
@@ -118,19 +160,21 @@ if __name__ == "__main__":
 
     init(agent_list)
 
-    for i in range(2000):
-        best = 0.
+    for i in range(10000):
+        """best = 0.
         best_value = ""
         print("---")
         for current in agent_list:
+            step_run(agent_list)
             if best < current.fitness:
                 best = current.fitness
                 best_value = current.value
-        print(best, best_value)
+        print(best, best_value)"""
         agent_list = step(agent_list)
         """for current in agent_list:
             print(current)"""
 
     # print all agents with their fitness
+    step_run(agent_list)
     for current in agent_list:
         print(current)
