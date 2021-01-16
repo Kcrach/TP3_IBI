@@ -19,12 +19,15 @@ conf = dict()
 
 
 def check(student_id, passwords):
-    proc = subprocess.Popen(["./unlock64.exe", str(student_id)]
-                            + passwords, stdout=subprocess.PIPE)
-    results = []
+    target = "./unlock64.exe"
     sep = "\\r\\n"
     if sys.platform == "linux":
+        target = "./unlock"
         sep = "\\n"
+
+    proc = subprocess.Popen([target, str(student_id)]
+                            + passwords, stdout=subprocess.PIPE)
+    results = []
     while True:
         line = proc.stdout.readline()
         if not line:
