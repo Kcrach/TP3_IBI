@@ -1,4 +1,5 @@
 import random as rd
+import string
 
 
 class Agent:
@@ -9,13 +10,22 @@ class Agent:
         self.pool = pool
 
     def mutate(self):
-        possible = len(self.pool) + 1
+        possible = len(self.pool) + 3
+        """
+        == possible -> remove/add
+        == possible - 1 -> switch 2 char
+        == possible - 2 -> move 1 char
+        """
         choice = rd.randint(0, possible)
         new_value = ""
         if choice == possible:
+            list_value = list(self.value)
             if 12 < len(self.value) < 18:
                 if rd.randint(0, 1) == 0:
-                    self.value += self.pool[rd.randint(0, len(self.pool) - 1)]
+                    list_value \
+                        .insert(rd.randint(0, len(list_value) - 1),
+                                self.pool[rd.randint(0, len(self.pool) - 1)])
+                    self.value = "".join(list_value)
                 else:
                     pos = rd.randint(0, len(self.value) - 1)
                     for i in range(len(self.value)):
@@ -27,21 +37,48 @@ class Agent:
                     if i != pos:
                         new_value += self.value[i]
             else:
-                self.value += self.pool[rd.randint(0, len(self.pool) - 1)]
+                list_value \
+                    .insert(rd.randint(0, len(list_value) - 1),
+                            self.pool[rd.randint(0, len(self.pool) - 1)])
+                self.value = "".join(list_value)
 
             if new_value != "":
                 self.value = new_value
 
-        else:
-            pos = rd.randint(0, len(self.value) - 1)
+        elif choice == possible - 1:
+            pos_1 = rd.randint(0, len(self.value) - 1)
+            pos_2 = rd.randint(0, len(self.value) - 1)
             for i in range(len(self.value)):
-                if i == pos:
-                    new_value += self.pool[rd.randint(0, len(self.pool) - 1)]
+                if i == pos_1:
+                    new_value += self.value[pos_2]
+                elif i == pos_2:
+                    new_value += self.value[pos_1]
                 else:
                     new_value += self.value[i]
+
+            self.value = new_value
+
+        elif choice == possible - 2:
+            index = rd.randint(0, len(self.value) - 1)
+            char = self.value[index]
+            list_value = list(self.value)
+            list_value.pop(index)
+            list_value \
+                .insert(rd.randint(0, len(list_value) - 1), str(char))
+            self.value = "".join(list_value)
+
+        else:
+            k = rd.randint(0, len(self.value) - 1)
+            word = ""
+            if k != 0:
+                word += self.value[:k]
+            word += rd.choice(string.ascii_uppercase + string.digits) + \
+                self.value[k + 1:]
+            new_value = word
             self.value = new_value
 
         if not self.is_valid():
+            print(self.value)
             print("Error in mutation, invalid length !")
 
     def is_valid(self):

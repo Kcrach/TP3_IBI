@@ -47,9 +47,9 @@ def step_mutate(agents):
     """Mutate each agent."""
     for a in agents:
         old = a.value
-        for _ in range(rd.randint(1, 3)):
+        for _ in range(rd.randint(1, 1)):
             a.mutate()
-        """print(old, "to", a.value)"""
+        # print(old, "to", a.value)
     return agents
 
 
@@ -77,21 +77,24 @@ def step_generate(agents):
 
 def step_generate_rank(agents):
     agents = sorted(agents, key=lambda x: x.fitness)
+    best_agents = agents[-(len(agents) // 10):]
+    best_agent = agents[-1]
     new_agents = []
-    total_score = (len(agents) * (len(agents) + 1)) // 2
+    offset = 0  # set to zero for basic approach
+    total_score = (len(best_agents) * (len(best_agents) + 1)) // 2 - offset
     for _ in range(len(agents)):
-        score = rd.randint(1, total_score)
+        score = rd.randint(1, total_score) + offset
         index = 0
         current_agent = ag.Agent()
         delta = 0
         while score > 0:
             delta += 1
-            # current_agent = agents[index]
-            current_agent = agents[min(index + 10, NB_AGENT - 1)]
+            current_agent = best_agents[index]
             index += 1
             score -= delta
         new_agents.append(ag.Agent())
         new_agents[-1] = copy.deepcopy(current_agent)
+    new_agents[-1] = best_agent
     return new_agents
 
 
@@ -102,49 +105,98 @@ def random_mutation(agents):
     return agents
 
 
-def get_children(agents):
-    new_agents = []
-    for i in range(len(agents) - 1):
-        if i % 2 == 0:
-            dad = agents[i]
-            mum = agents[i + 1]
-            dad_percent = dad.fitness / (dad.fitness + mum.fitness)
-            # print(str(dad), str(mum))
-            for j in range(2):
-                new_agent = ag.Agent(POOL)
-                for k in range(max(len(dad.value), len(mum.value))):
-                    if rd.uniform(0., 1.) < dad_percent:
-                        if len(dad.value) > k:
-                            new_agent.value += dad.value[k]
-                    else:
-                        if len(mum.value) > k:
-                            new_agent.value += mum.value[k]
-                new_agents.append(ag.Agent())
-                new_agents[-1] = new_agent
-                # print("gives", new_agent)
+def heavy_mutation(agents):
+    for i in range(rd.randint(0, len(agents) // 20)):
+        agent_index = rd.randint(0, len(agents) - 1)
+        for j in range(4):
+            agents[agent_index].mutate()
+    return agents
 
-    return new_agents
+
+def get_children(agents):
+    done = []
+    for _ in range(int(len(agents) / 10)):
+        target = rd.randint(0, len(agents) - 1)
+        while target in done:
+            target = rd.randint(0, len(agents) - 1)
+        dad = agents[target]
+        # mum = agents[i + 1]
+        done.append(target)
+        target_2 = rd.randint(0, len(agents) - 1)
+        while target_2 in done:
+            target_2 = rd.randint(0, len(agents) - 1)
+        mum = agents[target_2]
+        dad_percent = dad.fitness / (dad.fitness + mum.fitness)
+        # print(str(dad), str(mum))
+        new_agent = ag.Agent(POOL)
+        for k in range(max(len(dad.value), len(mum.value))):
+            if rd.uniform(0., 1.) < dad_percent:
+                if len(dad.value) > k:
+                    new_agent.value += dad.value[k]
+            else:
+                if len(mum.value) > k:
+                    new_agent.value += mum.value[k]
+        agents[target] = new_agent
+        # print("gives", new_agent)
+
+    return agents
+
+
+def get_best_children(agents):
+    count = len(agents) // 10
+    best_agents = sorted(agents, key=lambda x: x.fitness)[-count:]
+    new_agents = []
+
+    for _ in range(count):
+        dad = best_agents[rd.randint(0, count - 1)]
+        mum = best_agents[rd.randint(0, count - 1)]
+        new = ag.Agent(POOL)
+        for i in range(min(len(dad.value), len(mum.value))):
+            if rd.randint(0, 1) == 0:
+                new.value += dad.value[i]
+            else:
+                new.value += mum.value[i]
+        new_agents.append(new)
+
+    for i in range(len(new_agents)):
+        agents[rd.randint(0, len(agents) - 1)] = new_agents[i]
+    return agents
 
 
 def step(agents):
     step_run(agents)
-    best = 0.
-    best_value = ""
-    print("---")
-    for current in agent_list:
-        step_run(agent_list)
-        if best < current.fitness:
-            best = current.fitness
-            best_value = current.value
-    print(best, best_value)
-    """for c in agents:
-        print(str(c))"""
+
+    if rd.randint(0, 100) == 0:
+        print("---")
+        # print_agents(agents)
+        print_best(agents)
+
     # agents = step_generate(agents)
     agents = step_generate_rank(agents)
+    best_agent = copy.deepcopy(agents[-1])
     # agents = get_children(agents)
+    get_best_children(agents)
     agents = step_mutate(agents)
-    agents = random_mutation(agents)
+    # agents = random_mutation(agents)
+    agents = heavy_mutation(agents)
+    agents[-1] = best_agent
+
     return agents
+
+
+def print_agents(agents):
+    for a in agents:
+        print(str(a))
+
+
+def print_best(agents):
+    best = None
+    best_value = None
+    for a in agents:
+        if best is None or best < a.fitness:
+            best = a.fitness
+            best_value = a.value
+    print(best, best_value)
 
 
 def init(agents):
@@ -154,27 +206,30 @@ def init(agents):
 
 if __name__ == "__main__":
 
+    # good password for 11608160 is XD54BLA1RE4U68
+
+    seed = None
+    # seed = "XD54BLA1RE4U6"
+
     agent_list = []
     for _ in range(NB_AGENT):
         agent_list.append(ag.Agent(POOL))
 
     init(agent_list)
 
-    for i in range(10000):
-        """best = 0.
-        best_value = ""
-        print("---")
-        for current in agent_list:
-            step_run(agent_list)
-            if best < current.fitness:
-                best = current.fitness
-                best_value = current.value
-        print(best, best_value)"""
+    if seed is not None:
+        agent_list[-1].value = seed
+
+    iteration = 0
+    while MAX_GEN == -1 or iteration < MAX_GEN:
+        print(iteration)
+        iteration += 1
         agent_list = step(agent_list)
-        """for current in agent_list:
-            print(current)"""
+        if agent_list[-1].fitness >= 1.0:
+            print("Done")
+            break
 
     # print all agents with their fitness
     step_run(agent_list)
-    for current in agent_list:
-        print(current)
+    print_agents(agent_list)
+    print_best(agent_list)
