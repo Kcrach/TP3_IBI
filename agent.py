@@ -4,10 +4,10 @@ import string
 
 class Agent:
 
-    def __init__(self, pool=[]):
+    def __init__(self):
         self.value = ""
         self.fitness = 0.
-        self.pool = pool
+        self.pool = "".join(string.ascii_uppercase) + "".join(string.digits)
 
     def mutate(self):
         possible = len(self.pool) + 3
