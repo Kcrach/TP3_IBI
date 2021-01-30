@@ -16,11 +16,11 @@ configuration ainsi que les paramètres voulus.
 
 <h3>Choix d'implémentation :</h3>
 Chaque pas de la boucle suit le cycle suivant :<br>
-* step_run()
-* step_generate_rank()
-* get_best_children()
-* step_mutate()
-* heavy_mutation()
+* step_run()<br>
+* step_generate_rank()<br>
+* get_best_children()<br>
+* step_mutate()<br>
+* heavy_mutation()<br>
 
 <b>step_run() :</b><br>
 Simple fonction exécutant le programme "unlock" et attribuant le score résultant
@@ -46,12 +46,12 @@ de l'un ou de l'autre avec une probabilité de 50%.
 
 <b>step_mutate() :</b><br>
 Fonction effectuant la mutation sur la population courante. Une mutation peut
-consister en l'une des actions suivantes :
-* Ajouter un nouveau caractère à une position aléatoire.
-* Retire un caractère à une position aléatoire.
-* Inverser la position de deux caractères.
-* Déplacer un caractère.
-* Modifier un caractère.
+consister en l'une des actions suivantes :<br>
+* Ajouter un nouveau caractère à une position aléatoire.<br>
+* Retire un caractère à une position aléatoire.<br>
+* Inverser la position de deux caractères.<br>
+* Déplacer un caractère.<br>
+* Modifier un caractère.<br>
 
 <b>heavy_mutation() :</b><br>
 Cette fonction applique d'importantes mutations (une série de 4 mutations à
@@ -62,3 +62,10 @@ hétérogénéité des agents.
 À chaque itération, le meilleur élément est sauvegardé et réaffecté à la
 population suivante. Cela permet de s'assurer que l'algorithme ne régressera
 pas.
+
+<h3>Résultats :</h3>
+
+Le programme met en moyenne 200 itérations pour parvenir à la bonne solution
+avec une population de 100 agents. Le plus grand nombre de "restart" observé a
+été de 4 ce qui fait un maximum de 1200 itérations observé. Le minimum d'
+itérations observé a été de 64.

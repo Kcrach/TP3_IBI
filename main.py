@@ -2,6 +2,7 @@
 # !/usr/bin/env python
 
 import subprocess
+from typing import List
 
 import agent as ag
 import random as rd
@@ -18,7 +19,13 @@ ALLOW_LOOP = False
 conf = dict()
 
 
-def check(student_id, passwords):
+def check(student_id: int, passwords: List[str]) -> List[float]:
+    """
+    Execute unlock with the given numbers and returns the results.
+    :param student_id: the student id used to generate the password.
+    :param passwords: list of passwords.
+    :return: list of the results.
+    """
     target = "./unlock64.exe"
     sep = "\\r\\n"
     if sys.platform == "linux":
@@ -36,7 +43,12 @@ def check(student_id, passwords):
     return results
 
 
-def config(path):
+def config(path: str) -> None:
+    """
+    Load the configuration file.
+    :param path: path of the configuration file.
+    :return: None
+    """
     with open(path, "r") as conf_file:
         for line in conf_file.readlines():
             words = line.split()
@@ -82,9 +94,11 @@ def config(path):
 
 # Algo Gen functions
 
-def step_run(agents):
+def step_run(agents: List[ag.Agent]) -> None:
     """
-    Run unlock64.exe for each agent and attribute the fitness.
+    Run unlock64.exe for each agent and attribute the resulting fitness.
+    :param agents: list of agents.
+    :return: None
     """
     to_run = []
     for a in agents:
@@ -96,28 +110,31 @@ def step_run(agents):
         agents[i].fitness = result[i]
 
 
-def step_mutate(agents):
+def step_mutate(agents: List[ag.Agent]) -> List[ag.Agent]:
     """
     Mutate each agent.
+    :param agents: list of agents.
+    :return: list of mutated agents.
     """
     for a in agents:
         a.mutate()
     return agents
 
 
-def step_generate_rank(agents):
+def step_generate_rank(agents: List[ag.Agent]) -> List[ag.Agent]:
     """
     Generate a new population according to the fitness ranking of the only 10%
     best elements.
+    :param agents: list of agents.
+    :return: the new agent list.
     """
     agents = sorted(agents, key=lambda x: x.fitness)
     best_agents = agents[-(len(agents) // 10):]
     best_agent = agents[-1]
     new_agents = []
-    offset = 0  # set to zero for basic approach
-    total_score = (len(best_agents) * (len(best_agents) + 1)) // 2 - offset
+    total_score = (len(best_agents) * (len(best_agents) + 1)) // 2
     for _ in range(len(agents)):
-        score = rd.randint(1, total_score) + offset
+        score = rd.randint(1, total_score)
         index = 0
         current_agent = ag.Agent()
         delta = 0
@@ -132,9 +149,11 @@ def step_generate_rank(agents):
     return new_agents
 
 
-def heavy_mutation(agents):
+def heavy_mutation(agents: List[ag.Agent]) -> List[ag.Agent]:
     """
-    Does 4 more mutations on 5% of the population.
+    Does 4 more mutations on 5% of the population to diversify the phenotype.
+    :param agents: list of agents.
+    :return: list of agents containing the heavily mutated ones.
     """
     for i in range(rd.randint(0, len(agents) // 20)):
         agent_index = rd.randint(0, len(agents) - 1)
@@ -143,11 +162,13 @@ def heavy_mutation(agents):
     return agents
 
 
-def get_best_children(agents):
+def get_best_children(agents: List[ag.Agent]) -> List[ag.Agent]:
     """
     Use the best 10% elements of the population to generate an equal amount
     of children.
     These children replace randomly the value of others elements.
+    :param agents: list of agents.
+    :return: the list of agents containing generated children.
     """
     count = len(agents) // 10
     best_agents = sorted(agents, key=lambda x: x.fitness)[-count:]
@@ -169,15 +190,15 @@ def get_best_children(agents):
     return agents
 
 
-def step(agents):
+def step(agents: List[ag.Agent]) -> List[ag.Agent]:
     """
     Execute one step of the algorithm and print occasionally the best element.
+    :param agents: list of agents.
+    :return: modified list of agents.
     """
     step_run(agents)
 
     if VERBOSE and rd.randint(0, 50) == 0:
-        # print("---")
-        # print_agents(agents)
         print_best(agents)
 
     agents = step_generate_rank(agents)
@@ -190,12 +211,22 @@ def step(agents):
     return agents
 
 
-def print_agents(agents):
+def print_agents(agents: List[ag.Agent]) -> None:
+    """
+    Print all the agents.
+    :param agents: list of agents.
+    :return: None
+    """
     for a in agents:
         print(str(a))
 
 
-def print_best(agents):
+def print_best(agents: List[ag.Agent]) -> None:
+    """
+    Print the agent with the best fitness.
+    :param agents: list of agents.
+    :return: None
+    """
     best = None
     best_value = None
     for a in agents:
@@ -205,7 +236,12 @@ def print_best(agents):
     print(best, best_value)
 
 
-def init(agents):
+def init(agents: List[ag.Agent]) -> None:
+    """
+    Randomly initialize the agents.
+    :param agents: list of agents.
+    :return: None.
+    """
     for a in agents:
         a.set_random()
 
@@ -256,5 +292,4 @@ if __name__ == "__main__":
             print("Restarting...")
     # print all agents with their fitness
     step_run(agent_list)
-    # print_agents(agent_list)
     print_best(agent_list)

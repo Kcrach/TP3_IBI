@@ -9,14 +9,21 @@ class Agent:
         self.fitness = 0.
         self.pool = "".join(string.ascii_uppercase) + "".join(string.digits)
 
-    def mutate(self):
+    def mutate(self) -> None:
+        """
+        Mutate the agent by doing one of the possible actions described here:\n
+        - removing/adding a character.\n
+        - switching the position of two characters.\n
+        - moving one character.\n
+        :return: None
+        """
         possible = len(self.pool) + 3
-        """
-        == possible -> remove/add
-        == possible - 1 -> switch 2 char
-        == possible - 2 -> move 1 char
-        """
         choice = rd.randint(0, possible)
+        """
+        choice == possible -> remove/add
+        choice == possible - 1 -> switch 2 char
+        choice == possible - 2 -> move 1 char
+        """
         new_value = ""
         if choice == possible:
             list_value = list(self.value)
@@ -81,13 +88,21 @@ class Agent:
             print(self.value)
             print("Error in mutation, invalid length !")
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
+        """
+        Check that the generated password has a valid length.
+        :return: the boolean.
+        """
         return 12 <= len(self.value) <= 18
 
     def __str__(self):
         return self.value + ": " + str(self.fitness)
 
-    def set_random(self):
+    def set_random(self) -> None:
+        """
+        Randomly initialize the agent value.
+        :return: None.
+        """
         size = rd.randint(12, 18)
         self.value = ""
         for i in range(size):
